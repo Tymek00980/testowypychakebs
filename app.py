@@ -34,6 +34,10 @@ def query_db(query, args=(), one=False):
     rv = cur.fetchall()
     cur.close()
     return (rv[0] if rv else None) if one else rv
+    @app.route("/")
+def home():
+    return "Strona działa!"
+
 
 def execute_db(query, args=()):
     db = get_db()
