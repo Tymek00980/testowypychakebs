@@ -34,10 +34,6 @@ def query_db(query, args=(), one=False):
     rv = cur.fetchall()
     cur.close()
     return (rv[0] if rv else None) if one else rv
-    @app.route("/")
-def home():
-    return "Strona działa!"
-
 
 def execute_db(query, args=()):
     db = get_db()
@@ -210,7 +206,7 @@ def init_db():
             c.execute("INSERT INTO categories (slug, name, sort_order) VALUES (?, ?, ?)",
                       (slug, name, sort_order))
 
-    # Seed Site Settings (Exact user requested texts!)
+    # Seed Site Settings
     defaults = [
         ('hero_badge', '🔥 Najlepsze kebaby w Krakowie', 'Hero Badge'),
         ('hero_title_1', 'Najlepszy kebab', 'Hero Tytuł cz. 1'),
@@ -238,7 +234,6 @@ def init_db():
         if not ex:
             c.execute("INSERT INTO site_settings (key, value, label) VALUES (?, ?, ?)", (key, val, label))
         else:
-            # Update about texts to match user requirement strictly
             if key in ('about_title', 'about_p1', 'about_p2', 'feature1_title', 'feature2_title', 'feature2_desc', 'feature3_title'):
                 c.execute("UPDATE site_settings SET value=? WHERE key=?", (val, key))
 
@@ -286,12 +281,11 @@ def init_db():
             VALUES ('Witamy w PYCHA KEBS!', 'Zapraszamy na nasz kultowy Kebab Box i autorskie sosy! Dwa lokale otwarte w Krakowie.', '🔥 OGŁOSZENIE', 1, ?)""",
             (datetime.now().strftime('%Y-%m-%d %H:%M'),))
 
-    # Seed Products (full real menu from 2027 with photos)
+    # Seed Products
     prod_count = c.execute("SELECT COUNT(*) FROM products").fetchone()[0]
     if prod_count == 0:
         cat_map = {r['slug']: r['id'] for r in c.execute("SELECT id, slug FROM categories").fetchall()}
         initial_products = [
-            # Kebaby (cat_id, name, description, price, image_url, available, featured, new, vege, spicy, sort_order)
             (cat_map['kebaby'], 'Kebab mały', 'Bułka lub tortilla, mięso, chrupiące warzywa i sos', 27.00, 'kebab bułka.png', 1, 0, 0, 0, 0, 1),
             (cat_map['kebaby'], 'Tortilla wegetariańska', 'Ser, frytki, świeże warzywa, autorski sos', 28.00, 'kebab w tortilli.png', 1, 0, 0, 1, 0, 2),
             (cat_map['kebaby'], 'Kebab w bułce', 'Klasyczny, chrupiąca bułka wypiekana na miejscu, świeże warzywa, sos', 30.00, 'kebab w bułce.png', 1, 1, 0, 0, 0, 3),
@@ -300,15 +294,11 @@ def init_db():
             (cat_map['kebaby'], 'Servets', 'Soczyste mięso + porcja złocistych frytek', 33.00, 'kebab z frytkami.png', 1, 0, 0, 0, 0, 6),
             (cat_map['kebaby'], 'Kebab zestaw', 'Mięso, frytki, świeża surówka, sos', 34.00, 'kebab box.png', 1, 0, 0, 0, 0, 7),
             (cat_map['kebaby'], 'Kebab Box', 'Boczek, ziemniaki, podwójne mięso, ciągnący ser', 38.00, 'kebab box.png', 1, 1, 1, 0, 0, 8),
-
-            # Zapiekanki
             (cat_map['zapiekanki'], 'Zapiekanka Zwykła', 'Chrupiąca bułka, ser mozzarella, pieczarki, sos', 18.00, 'zapiekanka wiejska.png', 1, 0, 0, 1, 0, 1),
             (cat_map['zapiekanki'], 'Zapiekanka Salami', 'Ser, pieczarki, wyraziste salami', 20.00, 'zapiekanka z salami.png', 1, 1, 0, 0, 0, 2),
             (cat_map['zapiekanki'], 'Zapiekanka Mięso kebab', 'Ser, pieczarki, soczyste mięso kebab', 21.00, 'zapiekanka kebab.png', 1, 0, 0, 0, 0, 3),
             (cat_map['zapiekanki'], 'Zapiekanka Wiejska', 'Ser, pieczarki, kiełbasa wiejska, ogórek kiszony, boczek', 24.00, 'zapiekanka wiejska.png', 1, 0, 0, 0, 0, 4),
             (cat_map['zapiekanki'], 'Kompozycja własna', 'Ser, pieczarki + 3 dowolne składniki do wyboru', 25.00, 'zapiekanka kebab.png', 1, 0, 1, 0, 0, 5),
-
-            # Przystawki
             (cat_map['przystawki'], 'Frytki', 'Złociste, chrupiące frytki belgijskie', 15.00, 'frytki.png', 1, 0, 0, 1, 0, 1),
             (cat_map['przystawki'], 'Krążki cebulowe', 'Chrupiące panierowane krążki cebulowe', 16.00, 'krążki cebulowe.png', 1, 0, 0, 1, 0, 2),
             (cat_map['przystawki'], 'Nuggetsy', 'Chrupiące kawałki piersi kurczaka z sosem', 19.00, 'nuggetsy.png', 1, 1, 0, 0, 0, 3),
@@ -316,8 +306,6 @@ def init_db():
             (cat_map['przystawki'], 'Stripsy', 'Pikantne paski z polędwiczek kurczaka', 23.00, 'nuggetsy.png', 1, 0, 0, 0, 1, 5),
             (cat_map['przystawki'], 'Jalapeño & Cheese Bites', 'Pikantne papryczki jalapeño z płynnym serem', 23.00, 'serki.png', 1, 0, 0, 1, 1, 6),
             (cat_map['przystawki'], 'Mozzarella Sticks', 'Ciągnące się paluszki serowe w ziołowej panierce', 23.00, 'serki.png', 1, 0, 0, 1, 0, 7),
-
-            # Dodatki & Sosy
             (cat_map['dodatki'], 'Dodatkowe mięso', 'Dodatkowa porcja soczystego mięsa do kebaba', 9.00, '', 1, 0, 0, 0, 0, 1),
             (cat_map['dodatki'], 'Ser dodatkowy', 'Dodatkowy ciągnący ser do kebaba lub zapiekanki', 7.00, '', 1, 0, 0, 1, 0, 2),
             (cat_map['dodatki'], 'Jalapeño', 'Pikantne marynowane papryczki jalapeño', 3.00, '', 1, 0, 0, 1, 1, 3),
@@ -325,8 +313,6 @@ def init_db():
             (cat_map['dodatki'], 'Cebulka prażona', 'Chrupiąca prażona złocista cebulka', 2.00, '', 1, 0, 0, 1, 0, 5),
             (cat_map['dodatki'], 'Autorski sos (dodatkowy)', 'Do wyboru: Łagodny / Średni / Czosnek / Ostry', 4.00, '', 1, 0, 0, 1, 0, 6),
             (cat_map['dodatki'], 'Sosy specjalne', 'Serowy, ostry sriracha, serowy chilli, 1000 wysp, ketchup', 4.00, '', 1, 0, 0, 1, 1, 7),
-
-            # Napoje
             (cat_map['napoje'], 'Woda 0,5l', 'Gazowana lub niegazowana', 6.00, '', 1, 0, 0, 1, 0, 1),
             (cat_map['napoje'], 'Sok 0,33l', 'Pomarańczowy / jabłkowy Cappy', 7.00, '', 1, 0, 0, 1, 0, 2),
             (cat_map['napoje'], 'Puszka 0,33l', 'Coca-Cola, Coca-Cola Zero, Fanta, Sprite', 7.00, '', 1, 0, 0, 1, 0, 3),
@@ -364,6 +350,9 @@ def init_db():
 
     db.commit()
     db.close()
+
+# Inicjalizacja bazy danych przy starcie aplikacji (np. Gunicorn)
+init_db()
 
 # -------------------------------------------------------------
 # PUBLIC ROUTES
@@ -424,7 +413,6 @@ def login():
         admin_row = query_db("SELECT * FROM admins WHERE username = ?", (username,), one=True)
         if admin_row:
             stored_hash = admin_row['password_hash']
-            # Support both werkzeug hash and legacy plaintext fallback
             is_valid = False
             if stored_hash.startswith('scrypt:') or stored_hash.startswith('pbkdf2:'):
                 is_valid = check_password_hash(stored_hash, password)
@@ -468,13 +456,11 @@ def admin():
     hours_all = query_db("SELECT * FROM opening_hours ORDER BY location_id, day_of_week")
     logs = query_db("SELECT * FROM activity_logs ORDER BY id DESC LIMIT 25")
 
-    # Available images from static/images
     img_dir = os.path.join(os.path.dirname(__file__), 'static', 'images')
     available_images = []
     if os.path.exists(img_dir):
         available_images = sorted([f for f in os.listdir(img_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.webp'))])
 
-    # Stats
     total_prod = len(products)
     active_prod = sum(1 for p in products if p['is_available'])
     hidden_prod = total_prod - active_prod
@@ -620,7 +606,7 @@ def delete_announcement(aid):
     flash('Ogłoszenie zostało usunięte.', 'info')
     return redirect(url_for('admin') + '#tab-ogloszenia')
 
-# ── Site settings (Hero, About, Features) ──
+# ── Site settings ──
 
 @app.route('/admin/settings/save', methods=['POST'])
 @login_required
@@ -633,7 +619,7 @@ def save_settings():
     flash('Treści strony zostały pomyślnie zaktualizowane.', 'success')
     return redirect(url_for('admin') + '#tab-tresci')
 
-# ── Locations ("Znajdź nas w Krakowie") ──
+# ── Locations ──
 
 @app.route('/admin/location/add', methods=['POST'])
 @login_required
@@ -653,7 +639,6 @@ def add_location():
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 10)""",
             (name, address, phone, rating, reviews_count, badge_text, map_embed_url, google_maps_url))
 
-        # Default opening hours for new location
         days = [(1, 'Poniedziałek'), (2, 'Wtorek'), (3, 'Środa'), (4, 'Czwartek'),
                 (5, 'Piątek'), (6, 'Sobota'), (7, 'Niedziela')]
         for dnum, dname in days:
@@ -757,6 +742,7 @@ def download_backup():
     return send_file(buf, as_attachment=True, download_name=filename, mimetype='application/x-sqlite3')
 
 # ── Gallery ──
+
 @app.route('/admin/gallery/add', methods=['POST'])
 @login_required
 def add_gallery():
@@ -777,6 +763,7 @@ def delete_gallery(gid):
     return redirect(url_for('admin') + '#tab-galeria')
 
 # ── Order Methods ──
+
 @app.route('/admin/ordermethod/add', methods=['POST'])
 @login_required
 def add_order_method():
@@ -825,7 +812,6 @@ def delete_order_method(oid):
 # -------------------------------------------------------------
 
 if __name__ == '__main__':
-    init_db()
     print("\n" + "="*60)
     print("  🌯  PYCHA KEBS PRO 2.0  –  Panel Administratora")
     print("="*60)
