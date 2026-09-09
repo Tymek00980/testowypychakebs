@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PYCHA KEBS – {{ settings.get('hero_title_1', 'Najlepszy kebab') }} w Krakowie</title>
+    <meta name="description" content="PYCHA KEBS – najlepszy kebab w Krakowie. Lokale: Korpala 20 i Wrocławska 31.">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+    <a href="#">
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="PYCHA KEBS" class="logo-img">
+    </a>
+    <ul class="nav-links" id="navLinks">
+        <li><a href="#o-nas">O nas</a></li>
+        <li><a href="#galeria">Galeria</a></li>
+        <li><a href="#menu">Menu</a></li>
+        <li><a href="#zamow-online">Zamów</a></li>
+        <li><a href="#godziny">Godziny</a></li>
+        <li><a href="#lokale">Lokale</a></li>
+        <li><a href="#opinie">Opinie</a></li>
+        <li><a href="#kontakt">Kontakt</a></li>
+        <li class="social-dropdown">
+            <button class="social-btn" id="socialBtn">Media ▾</button>
+            <div class="social-menu" id="socialMenu">
+                <a href="https://www.instagram.com/pycha_kebs/" target="_blank">
+                    <img src="{{ url_for('static', filename='images/instagram.png') }}" alt="Instagram"> Instagram
+                </a>
+                <a href="https://www.tiktok.com/@pychakebs" target="_blank">
+                    <img src="{{ url_for('static', filename='images/tiktok.png') }}" alt="TikTok"> TikTok
+                </a>
+                <a href="https://www.facebook.com/pychakebs" target="_blank">
+                    <img src="{{ url_for('static', filename='images/facebook.png') }}" alt="Facebook"> Facebook
+                </a>
+            </div>
+        </li>
+        <li><a href="#zamow-online" class="nav-cta">Zamów teraz</a></li>
+    </ul>
+    <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+</nav>
+
+<!-- ANNOUNCEMENT BANNER -->
+{% if announcement and announcement.is_active and announcement.content %}
+<div class="announcement-banner" id="announcementBanner">
+    <div class="announcement-content">
+        <span class="announcement-tag">{{ announcement.badge_text or '🔥 OGŁOSZENIE' }}</span>
+        <span class="announcement-text">{{ announcement.content }}</span>
+    </div>
+    <button class="announcement-close" id="closeAnnouncementBtn" title="Zamknij powiadomienie">&times;</button>
+</div>
+{% endif %}
+
+<!-- HERO -->
+<section class="hero {% if announcement and announcement.is_active and announcement.content %}with-announcement{% endif %}">
+    <div class="hero-content">
+        <div class="hero-badge">{{ settings.get('hero_badge', '🔥 Najlepsze kebaby w Krakowie') }}</div>
+        <h1>{{ settings.get('hero_title_1', 'Najlepszy kebab') }}<br>w <span>{{ settings.get('hero_title_2', 'Krakowie') }}</span></h1>
+        <p>{{ settings.get('hero_subtitle', 'Przekonaj się sam! Soczyste mięso, autorskie sosy i porcje, które naprawdę sycą.') }}</p>
+        <div class="hero-buttons">
+            <a href="#zamow-online" class="btn btn-primary">Zamów teraz →</a>
+            <a href="#menu" class="btn btn-secondary">Zobacz menu</a>
+        </div>
+        <div class="hero-stats">
+            <div class="stat">
+                <div class="stat-number">{{ settings.get('hero_rating', '4.6') }}</div>
+                <div class="stat-label">Średnia ocena</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">{{ settings.get('hero_reviews', '880+') }}</div>
+                <div class="stat-label">Opinii</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">2</div>
+                <div class="stat-label">Lokale</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">{{ settings.get('hero_min_price', 'od 27 zł') }}</div>
+                <div class="stat-label">Kebab</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ABOUT -->
+<section class="about" id="o-nas">
+    <div class="container">
+        <div class="about-grid">
+            <div class="about-image-wrapper reveal">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="PYCHA KEBS Logo" class="about-logo-img" loading="lazy" decoding="async">
+                <div class="about-image-badge">
+                    <span>🌯 Najlepszy smak od 2022</span>
+                </div>
+            </div>
+            <div class="about-content reveal reveal-delay-1">
+                <div class="subtitle" style="color:var(--primary);font-weight:600;letter-spacing:2px;text-transform:uppercase;font-size:0.84rem;margin-bottom:8px;">
+                    {{ settings.get('about_subtitle', 'O nas') }}
+                </div>
+                <h3>{{ settings.get('about_title', 'Dlaczego właśnie u nas?') }}</h3>
+                <p>{{ settings.get('about_p1', 'Od 2022 roku robimy kebaby tak, jak lubimy je sami jeść. ze świeżego mięsa, chrupiących warzyw i własnych sosów.') }}</p>
+                <p>{{ settings.get('about_p2', 'Dwa lokale w Krakowie: Korpala 20 i Wrocławska 31. Na miejscu, na wynos lub z dostawą.') }}</p>
+                <div class="features">
+                    <div class="feature">
+                        <div class="feature-icon">{{ settings.get('feature1_icon', '🥗') }}</div>
+                        <div>
+                            <h4>{{ settings.get('feature1_title', 'Świeże składniki') }}</h4>
+                            <p>{{ settings.get('feature1_desc', 'Codziennie świeże warzywa i mięso') }}</p>
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">{{ settings.get('feature2_icon', '🚀') }}</div>
+                        <div>
+                            <h4>{{ settings.get('feature2_title', 'Szybka dostawa') }}</h4>
+                            <p>{{ settings.get('feature2_desc', 'Uber · Glovo · Wolt') }}</p>
+                        </div>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">{{ settings.get('feature3_icon', '📞') }}</div>
+                        <div>
+                            <h4>{{ settings.get('feature3_title', 'Zamów telefonicznie') }}</h4>
+                            <p>{{ settings.get('feature3_desc', 'Zadzwoń i odbierz bez czekania') }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- GALERIA -->
+<section class="gallery" id="galeria">
+    <div class="container">
+        <div class="section-header reveal">
+            <div class="subtitle">Galeria</div>
+            <h2>Nasze jedzenie</h2>
+        </div>
+        <div class="gallery-grid">
+            {% for g in gallery %}
+            <div class="gallery-item reveal {% if loop.index0 % 4 != 0 %}reveal-delay-{{ loop.index0 % 4 }}{% endif %}">
+                <img src="{{ url_for('static', filename='images/' + g.image_url) }}" alt="Zdjęcie z galerii" loading="lazy" decoding="async">
+            </div>
+            {% else %}
+            <div style="text-align:center; grid-column: 1/-1; color: var(--gray);">Galeria wkrótce...</div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- MENU -->
+<section class="menu" id="menu">
+    <div class="container">
+        <div class="section-header reveal">
+            <div class="subtitle">Menu & Cennik</div>
+            <h2>Nasza oferta</h2>
+            <p>Wszystkie pozycje przygotowywane ze świeżych składników i autorskich sosów.</p>
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="menu-tabs reveal reveal-delay-1">
+            {% for cat in categories %}
+            <button class="menu-tab {% if loop.first %}active{% endif %}" data-tab="{{ cat.slug }}">
+                {{ cat.name }}
+            </button>
+            {% endfor %}
+        </div>
+
+        <!-- Category Content -->
+        {% for cat in categories %}
+        <div class="menu-category {% if loop.first %}active{% endif %}" id="cat-{{ cat.slug }}">
+            <div class="menu-list reveal reveal-delay-2">
+                <div class="menu-section-title">
+                    <span>{{ cat.name }}</span>
+                    <span style="font-size: 0.85rem; font-weight: normal; opacity: 0.8;">
+                        {{ products_by_category.get(cat.slug, [])|length }} pozycji
+                    </span>
+                </div>
+                <div class="menu-items-grid">
+                    {% set cat_products = products_by_category.get(cat.slug, []) %}
+                    {% if cat_products %}
+                        {% for p in cat_products %}
+                        <div class="menu-item" id="product-{{ p.id }}">
+                            <div class="menu-item-left">
+                                {% if p.image_url %}
+                                    {% if p.image_url.startswith('http') %}
+                                        <img src="{{ p.image_url }}" alt="{{ p.name }}" class="menu-item-thumb" loading="lazy" decoding="async">
+                                    {% else %}
+                                        <img src="{{ url_for('static', filename='images/' + p.image_url) }}" alt="{{ p.name }}" class="menu-item-thumb" loading="lazy" decoding="async" onerror="this.style.display='none'">
+                                    {% endif %}
+                                {% endif %}
+                                <div class="menu-item-info">
+                                    <div class="menu-item-name-row">
+                                        <span class="menu-item-name">{{ p.name }}</span>
+                                        {% if p.is_vegetarian %}
+                                            <span class="badge badge-vege" title="Danie wegetariańskie">🥗 Vege</span>
+                                        {% endif %}
+                                        {% if p.is_spicy %}
+                                            <span class="badge badge-spicy" title="Pikantne danie">🌶️ Pikantne</span>
+                                        {% endif %}
+                                        {% if p.is_featured %}
+                                            <span class="badge badge-featured">🔥 Polecany</span>
+                                        {% endif %}
+                                        {% if p.is_new %}
+                                            <span class="badge badge-new">✨ Nowość</span>
+                                        {% endif %}
+                                    </div>
+                                    {% if p.description %}
+                                        <div class="menu-item-desc">{{ p.description }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="menu-item-right">
+                                <div class="menu-item-price">
+                                    {% if p.price.is_integer() %}
+                                        {{ p.price|int }} zł
+                                    {% else %}
+                                        {{ "%.2f"|format(p.price) }} zł
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div style="padding: 24px; text-align: center; color: var(--gray);">
+                            Brak dostępnych pozycji w tej kategorii.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+    </div>
+</section>
+
+<!-- ZAMÓW ONLINE -->
+<section class="order-online" id="zamow-online">
+    <div class="container">
+        <div class="section-header reveal">
+            <div class="subtitle">Zamów</div>
+            <h2>Wybierz sposób zamówienia</h2>
+        </div>
+        <div class="order-grid">
+            <div class="order-card phone-card reveal reveal-delay-1">
+                <div style="font-size:2rem;margin-bottom:8px;">📞</div>
+                <h3>Telefon</h3>
+                <p>Zadzwoń i zamów</p>
+                <button class="btn btn-primary" id="phoneToggle" style="width:100%;justify-content:center;padding:9px 10px;font-size:0.85rem;">
+                    Wybierz lokal
+                </button>
+                <div class="phone-locations" id="phoneLocations">
+                    {% for item in loc_data %}
+                    <a href="tel:{{ item.loc.phone }}">📍 {{ item.loc.name }}<br>{{ item.loc.phone }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% for om in order_methods %}
+            <div class="order-card reveal reveal-delay-{{ loop.index % 4 + 1 }}">
+                {% if om.image_url %}
+                <img src="{{ url_for('static', filename='images/' + om.image_url) }}" alt="{{ om.name }}" class="platform-logo" loading="lazy" decoding="async" onerror="this.style.display='none'">
+                {% else %}
+                <div class="platform-logo-placeholder">🛵</div>
+                {% endif %}
+                <h3>{{ om.name }}</h3>
+                <p>{{ om.description }}</p>
+                <a href="{{ om.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Zamów</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- GODZINY OTWARCIA -->
+<section class="hours-section" id="godziny">
+    <div class="container">
+        <div class="section-header reveal">
+            <div class="subtitle">Godziny otwarcia</div>
+            <h2>Kiedy jesteśmy otwarci</h2>
+        </div>
+        <div class="hours-grid">
+            {% for item in loc_data %}
+            {% set loc = item.loc %}
+            {% set hours = item.hours %}
+            {% set status = item.status %}
+            <div class="hours-card reveal reveal-delay-{{ loop.index }}">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+                    <h3>{{ loc.name }}</h3>
+                    <span class="live-pill {% if status.is_open %}live-open{% else %}live-closed{% endif %}">
+                        <span class="live-dot"></span> {{ status.label }}
+                    </span>
+                </div>
+                <div class="address">📍 {{ loc.address }}</div>
+                {% for h in hours %}
+                <div class="hours-row">
+                    <span class="day">{{ h.day_name }}</span>
+                    <span class="time {% if h.is_closed %}closed{% endif %}">
+                        {% if h.is_closed %}Zamknięte{% else %}{{ h.open_time }} – {{ h.close_time }}{% endif %}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- LOKALE ("Znajdź nas w Krakowie") -->
+<section class="locations" id="lokale">
+    <div class="container">
+        <div class="section-header reveal">
+            <div class="subtitle">Lokale</div>
+            <h2>Znajdź nas w Krakowie</h2>
+        </div>
+        <div class="locations-grid">
+            {% for item in loc_data %}
+            {% set loc = item.loc %}
+            {% set status = item.status %}
+            <div class="location-card {% if loc.badge_text == 'Najwyżej oceniany' %}featured{% endif %} reveal reveal-delay-{{ loop.index }}">
+                {% if loc.map_embed_url %}
+                <iframe class="location-map" src="{{ loc.map_embed_url }}" loading="lazy" allowfullscreen></iframe>
+                {% endif %}
+                <div class="location-body">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        {% if loc.badge_text %}
+                        <div class="location-badge">{{ loc.badge_text }}</div>
+                        {% else %}
+                        <div></div>
+                        {% endif %}
+                        <span class="live-pill {% if status.is_open %}live-open{% else %}live-closed{% endif %}">
+                            <span class="live-dot"></span> {{ status.label }}
+                        </span>
+                    </div>
+                    <div class="location-rating">
+                        <span class="stars">★★★★★</span> 
+                        <span>{{ loc.rating }}</span> 
+                        <small>({{ loc.reviews_count }})</small>
+                    </div>
+                    <h3>{{ loc.name }}</h3>
+                    <div class="location-address">📍 {{ loc.address }}</div>
+                    <div class="location-meta">
+                        <div>📞 <a href="tel:{{ loc.phone }}">{{ loc.phone }}</a></div>
+                    </div>
+                    <div class="location-actions">
+                        {% if loc.google_maps_url %}
+                        <a href="{{ loc.google_maps_url }}" target="_blank" class="btn btn-primary btn-sm">Trasa</a>
+                        {% endif %}
+                        <a href="tel:{{ loc.phone }}" class="btn btn-outline btn-sm">Zadzwoń</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- HOW -->
+<section class="how">
+    <div class="container">
+        <div class="section-header reveal">
+            <div class="subtitle">Jak zamówić</div>
+            <h2>Prosto i szybko</h2>
+        </div>
+        <div class="steps">
+            <div class="step reveal reveal-delay-1"><div class="step-number">1</div><h3>Wybierz lokal</h3><p>Korpala lub Wrocławska</p></div>
+            <div class="step reveal reveal-delay-2"><div class="step-number">2</div><h3>Zamów</h3><p>Online lub telefon</p></div>
+            <div class="step reveal reveal-delay-3"><div class="step-number">3</div><h3>Opcja</h3><p>Na miejscu / wynos / dostawa</p></div>
+            <div class="step reveal reveal-delay-4"><div class="step-number">4</div><h3>Smacznego!</h3><p>Ciesz się kebabem</p></div>
+        </div>
+    </div>
+</section>
+
+<!-- OPINIE -->
+<section class="reviews" id="opinie">
+    <div class="container">
+        <div class="section-header reveal">
+            <div class="subtitle">Opinie</div>
+            <h2>Co mówią klienci</h2>
+        </div>
+        <div class="reviews-grid">
+            <div class="review-card reveal reveal-delay-1">
+                <div class="review-header">
+                    <div class="review-avatar">A</div>
+                    <div class="review-info">
+                        <h4>Arkadiusz</h4>
+                        <div class="stars">★★★★★</div>
+                    </div>
+                </div>
+                <p>„Byłem tu pierwszy raz, już na samym wejściu zapach kurczaka wzbudził we mnie nadzieję na dobry posiłek, nie myliłem się, kebab amerykański był naprawdę pyszny. Polecam śmiało”</p>
+                <div class="review-footer">
+                    <span class="review-location">📍 Korpala 20</span>
+                    <a href="https://maps.app.goo.gl/SU8KNQQU9LwuzUfP8" target="_blank" class="review-link">Google Maps →</a>
+                </div>
+            </div>
+            <div class="review-card reveal reveal-delay-2">
+                <div class="review-header">
+                    <div class="review-avatar">A</div>
+                    <div class="review-info">
+                        <h4>Adam</h4>
+                        <div class="stars">★★★★★</div>
+                    </div>
+                </div>
+                <p>„Jadłem dużego kebaba w tortilli z kurczakiem i sosem łagodnym jak dla mnie był bardzo pyszny. W środku jest stolik dla dwóch osób, przytulnie. Nie musiałem długo czekać na posiłek, do tego bardzo miła obsługa.”</p>
+                <div class="review-footer">
+                    <span class="review-location">📍 Wrocławska 31</span>
+                    <a href="https://maps.app.goo.gl/yXPnvaMXHPNaVB4Q7" target="_blank" class="review-link">Google Maps →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+    <div class="container reveal">
+        <h2>Głodny? Zamów już teraz!</h2>
+        <p>Online, telefonicznie albo wpadnij do nas.</p>
+        <div class="hero-buttons" style="justify-content:center">
+            <a href="#zamow-online" class="btn btn-primary">Zamów online</a>
+            {% for item in loc_data %}
+            <a href="tel:{{ item.loc.phone }}" class="btn btn-secondary">📞 {{ item.loc.phone }} ({{ item.loc.name }})</a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- KONTAKT -->
+<section class="contact" id="kontakt">
+    <div class="container">
+        <div class="section-header reveal">
+            <div class="subtitle">Kontakt</div>
+            <h2>Skontaktuj się z nami</h2>
+        </div>
+        <div class="contact-info-grid">
+            {% for item in loc_data %}
+            <div class="contact-item reveal reveal-delay-{{ loop.index }}">
+                <div class="contact-icon">📍</div>
+                <h4>{{ item.loc.name }}</h4>
+                <p>{{ item.loc.address }}</p>
+                <p style="margin-top:6px"><a href="tel:{{ item.loc.phone }}">{{ item.loc.phone }}</a></p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-about">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="PYCHA KEBS" class="footer-logo">
+                <p>PYCHA KEBS – prawdziwy smak kebaba w Krakowie. Dwa lokale: Korpala 20 i Wrocławska 31.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Nawigacja</h4>
+                <ul>
+                    <li><a href="#o-nas">O nas</a></li>
+                    <li><a href="#galeria">Galeria</a></li>
+                    <li><a href="#menu">Menu</a></li>
+                    <li><a href="#zamow-online">Zamów</a></li>
+                    <li><a href="#godziny">Godziny</a></li>
+                    <li><a href="#lokale">Lokale</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Dostawa</h4>
+                <ul>
+                    {% for om in order_methods %}
+                    <li><a href="{{ om.url }}" target="_blank" rel="noopener noreferrer">{{ om.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Social Media</h4>
+                <ul>
+                    <li><a href="https://www.instagram.com/pycha_kebs/" target="_blank">Instagram</a></li>
+                    <li><a href="https://www.tiktok.com/@pychakebs" target="_blank">TikTok</a></li>
+                    <li><a href="https://www.facebook.com/pychakebs" target="_blank">Facebook</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div>&copy; 2024–2027 PYCHA KEBS. Wszelkie prawa zastrzeżone.</div>
+            <div>
+                <!-- Discreet gear icon for administrator login -->
+                <a href="{{ url_for('login') }}" class="discreet-gear" title="Panel Administratora">⚙️</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

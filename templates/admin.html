@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Administratora – PYCHA KEBS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="admin-sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <a href="{{ url_for('index') }}" target="_blank" title="Podgląd strony">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="PYCHA KEBS" class="sidebar-logo">
+        </a>
+        <div class="brand-text">
+            <span class="brand-title">PYCHA KEBS</span>
+            <span class="brand-subtitle">Panel Administratora</span>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <a href="#tab-menu" class="sidebar-link active" data-tab="tab-menu">
+            <span class="link-icon">🍽️</span>
+            <span>Menu & Cennik</span>
+        </a>
+        <a href="#tab-ogloszenia" class="sidebar-link" data-tab="tab-ogloszenia">
+            <span class="link-icon">📢</span>
+            <span>Ogłoszenia</span>
+        </a>
+        <a href="#tab-tresci" class="sidebar-link" data-tab="tab-tresci">
+            <span class="link-icon">✏️</span>
+            <span>Treści strony</span>
+        </a>
+        <a href="#tab-lokale" class="sidebar-link" data-tab="tab-lokale">
+            <span class="link-icon">📍</span>
+            <span>Lokale</span>
+        </a>
+        <a href="#tab-godziny" class="sidebar-link" data-tab="tab-godziny">
+            <span class="link-icon">🕐</span>
+            <span>Godziny otwarcia</span>
+        </a>
+        <a href="#tab-dziennik" class="sidebar-link" data-tab="tab-dziennik">
+            <span class="link-icon">📋</span>
+            <span>Dziennik zdarzeń</span>
+        </a>
+        <a href="#tab-galeria" class="sidebar-link" data-tab="tab-galeria">
+            <span class="link-icon">🖼️</span>
+            <span>Galeria</span>
+        </a>
+        <a href="#tab-zamowienia" class="sidebar-link" data-tab="tab-zamowienia">
+            <span class="link-icon">🛵</span>
+            <span>Sposoby zamówień</span>
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <a href="{{ url_for('download_backup') }}" class="footer-btn backup-btn" title="Pobierz kopię zapasową bazy SQLite">
+            <span>💾</span> Pobierz backup (.db)
+        </a>
+        <a href="{{ url_for('index') }}" target="_blank" class="footer-btn site-btn" title="Otwórz stronę w nowej karcie">
+            <span>🌐</span> Podgląd strony ↗
+        </a>
+        <a href="{{ url_for('logout') }}" class="footer-btn logout-btn" title="Wyloguj z panelu">
+            <span>🚪</span> Wyloguj ({{ session.get('admin_user', 'admin') }})
+        </a>
+    </div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<div class="admin-wrapper">
+    <!-- TOPBAR -->
+    <header class="admin-topbar">
+        <div class="topbar-left">
+            <button class="menu-toggle" id="menuToggle">☰</button>
+            <h1 class="topbar-title" id="pageTitle">🍽️ Menu i Cennik</h1>
+        </div>
+        <div class="topbar-right">
+            <div class="topbar-badge">
+                <span class="status-dot-green"></span>
+                <span>System aktywny</span>
+            </div>
+            <div class="admin-avatar">
+                <span>👤 {{ session.get('admin_user', 'admin') }}</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- FLASH MESSAGES -->
+    <div class="flash-area">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <span>{{ message }}</span>
+                        <button class="alert-close" onclick="this.parentElement.remove();">&times;</button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- MAIN BODY -->
+    <main class="admin-content">
+
+        <!-- ============================================== -->
+        <!-- TAB 1: MENU & CENNIK                          -->
+        <!-- ============================================== -->
+        <section class="tab-panel active" id="tab-menu">
+            <!-- STATS CARDS -->
+            <div class="stats-cards-grid">
+                <div class="stat-box">
+                    <div class="stat-icon">📦</div>
+                    <div>
+                        <div class="stat-label">Wszystkie pozycje</div>
+                        <div class="stat-num">{{ stats.total }}</div>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon" style="background:rgba(46,204,113,0.15);color:#2ecc71;">✅</div>
+                    <div>
+                        <div class="stat-label">Aktywne w menu</div>
+                        <div class="stat-num" style="color:#2ecc71;">{{ stats.active }}</div>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon" style="background:rgba(241,196,15,0.15);color:#f1c40f;">⏸️</div>
+                    <div>
+                        <div class="stat-label">Ukryte / Wyłączone</div>
+                        <div class="stat-num" style="color:#f1c40f;">{{ stats.hidden }}</div>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-icon" style="background:rgba(232,90,42,0.15);color:#e85a2a;">🔥</div>
+                    <div>
+                        <div class="stat-label">Polecane / Nowości</div>
+                        <div class="stat-num">{{ stats.featured }} / {{ stats.new }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTROLS BAR -->
+            <div class="panel-controls">
+                <div class="search-filter-box">
+                    <input type="text" id="menuSearchInput" placeholder="🔍 Szukaj produktu po nazwie lub opisie..." class="search-input">
+                    <select id="menuCatFilter" class="filter-select">
+                        <option value="">Wszystkie kategorie</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat.name }}">{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button class="btn-primary" onclick="openModal('add-product-modal')">
+                    <span>➕</span> Dodaj produkt
+                </button>
+            </div>
+
+            <!-- PRODUCTS TABLE -->
+            <div class="table-container">
+                <table class="data-table" id="productsTable">
+                    <thead>
+                        <tr>
+                            <th style="width:45px;">Lp.</th>
+                            <th>Produkt</th>
+                            <th>Kategoria</th>
+                            <th style="min-width:160px;">Cena (Edycja błyskawiczna)</th>
+                            <th>Odznaki specjalne</th>
+                            <th>Wyróżnienia</th>
+                            <th>Widoczność</th>
+                            <th style="text-align:right;">Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in products %}
+                        <tr id="row-prod-{{ p.id }}" data-category="{{ p.category_name }}">
+                            <td class="text-muted">{{ loop.index }}</td>
+                            <td>
+                                <div class="prod-cell">
+                                    {% if p.image_url %}
+                                        <img src="{{ url_for('static', filename='images/' + p.image_url) }}" alt="{{ p.name }}" class="prod-thumb" onerror="this.src='{{ url_for('static', filename='images/logo.png') }}'">
+                                    {% else %}
+                                        <div class="prod-thumb no-img">🥙</div>
+                                    {% endif %}
+                                    <div class="prod-info-cell">
+                                        <div class="prod-title">{{ p.name }}</div>
+                                        <div class="prod-desc">{{ p.description or 'Brak opisu' }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="category-pill">{{ p.category_name }}</span>
+                            </td>
+                            <td>
+                                <!-- Inline price editor -->
+                                <div class="inline-price-box">
+                                    <input type="number" step="0.5" min="0" class="price-edit-input" id="price-input-{{ p.id }}" value="{{ '%.2f'|format(p.price) }}">
+                                    <span class="currency-tag">zł</span>
+                                    <button type="button" class="btn-price-save" onclick="saveQuickPrice({{ p.id }})" title="Zapisz cenę">💾</button>
+                                    <span class="price-saved-badge" id="price-badge-{{ p.id }}">✓</span>
+                                </div>
+                            </td>
+                            <td>
+                                <!-- Badges for Vege and Spicy -->
+                                <div class="tags-group">
+                                    <button type="button" class="toggle-pill {% if p.is_vegetarian %}active-vege{% endif %}" onclick="toggleField({{ p.id }}, 'is_vegetarian', this)" title="Włącz / wyłącz danie wegetariańskie">
+                                        🥗 Vege
+                                    </button>
+                                    <button type="button" class="toggle-pill {% if p.is_spicy %}active-spicy{% endif %}" onclick="toggleField({{ p.id }}, 'is_spicy', this)" title="Włącz / wyłącz danie pikantne">
+                                        🌶️ Ostre
+                                    </button>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="tags-group">
+                                    <button type="button" class="toggle-pill {% if p.is_featured %}active-featured{% endif %}" onclick="toggleField({{ p.id }}, 'is_featured', this)" title="Włącz / wyłącz polecane">
+                                        🔥 Polecane
+                                    </button>
+                                    <button type="button" class="toggle-pill {% if p.is_new %}active-new{% endif %}" onclick="toggleField({{ p.id }}, 'is_new', this)" title="Włącz / wyłącz nowość">
+                                        ✨ Nowość
+                                    </button>
+                                </div>
+                            </td>
+                            <td>
+                                <button type="button" class="status-btn {% if p.is_available %}status-on{% else %}status-off{% endif %}" onclick="toggleField({{ p.id }}, 'is_available', this)">
+                                    <span>{% if p.is_available %}● W ofercie{% else %}○ Ukryty{% endif %}</span>
+                                </button>
+                            </td>
+                            <td style="text-align:right;">
+                                <div class="action-btns">
+                                    <button type="button" class="btn-icon btn-edit" title="Edytuj szczegóły" onclick="openEditProductModal({{ p.id }}, '{{ p.name|e }}', {{ p.category_id }}, '{{ (p.description or '')|e }}', {{ p.price }}, '{{ (p.image_url or '')|e }}', {{ p.sort_order }}, {{ p.is_vegetarian }}, {{ p.is_spicy }}, {{ p.is_featured }}, {{ p.is_new }})">
+                                        ✏️
+                                    </button>
+                                    <form method="POST" action="/admin/product/{{ p.id }}/delete" style="display:inline;" onsubmit="return confirm('Czy na pewno chcesz usunąć produkt: {{ p.name|e }}?')">
+                                        <button type="submit" class="btn-icon btn-delete" title="Usuń pozycję">🗑️</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- TAB 2: OGŁOSZENIA                             -->
+        <!-- ============================================== -->
+        <section class="tab-panel" id="tab-ogloszenia">
+            <div class="panel-header-row">
+                <div>
+                    <h2>Zarządzanie ogłoszeniami</h2>
+                    <p class="section-desc">Powiadomienie wyświetla się klientom na samej górze strony głównej.</p>
+                </div>
+                <button class="btn-primary" onclick="openModal('add-ann-modal')">+ Nowe ogłoszenie</button>
+            </div>
+
+            <div class="table-container" style="margin-top:20px;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width:140px;">Odznaka</th>
+                            <th>Treść ogłoszenia</th>
+                            <th style="width:120px;">Status</th>
+                            <th style="width:140px;">Data dodania</th>
+                            <th style="text-align:right; width:120px;">Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ann in announcements %}
+                        <tr>
+                            <td>
+                                <span class="badge-tag-orange">{{ ann.badge_text or '🔥 OGŁOSZENIE' }}</span>
+                            </td>
+                            <td style="font-weight:500;">
+                                {{ ann.content }}
+                            </td>
+                            <td>
+                                <span class="status-pill {% if ann.is_active %}pill-active{% else %}pill-inactive{% endif %}">
+                                    {% if ann.is_active %}● Aktywne na stronie{% else %}○ Wyłączone{% endif %}
+                                </span>
+                            </td>
+                            <td class="text-muted">{{ ann.created_at or '–' }}</td>
+                            <td style="text-align:right;">
+                                <div class="action-btns">
+                                    <button class="btn-icon btn-edit" onclick="openEditAnnModal({{ ann.id }}, '{{ ann.badge_text|e }}', '{{ ann.content|e }}', {{ ann.is_active }})" title="Edytuj">✏️</button>
+                                    <form method="POST" action="/admin/announcement/{{ ann.id }}/delete" style="display:inline;" onsubmit="return confirm('Usunąć to ogłoszenie?')">
+                                        <button type="submit" class="btn-icon btn-delete" title="Usuń">🗑️</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="empty-table">Brak ogłoszeń w bazie. Kliknij "+ Nowe ogłoszenie", aby utworzyć komunikat.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- TAB 3: TREŚCI STRONY                           -->
+        <!-- ============================================== -->
+        <section class="tab-panel" id="tab-tresci">
+            <div class="panel-header-row">
+                <div>
+                    <h2>Treści strony głównej & Hasło</h2>
+                    <p class="section-desc">Dostosuj wszystkie teksty, statystyki nagłówka, sekcję "O nas" oraz zmień hasło.</p>
+                </div>
+            </div>
+
+            <form method="POST" action="/admin/settings/save" style="margin-top:20px;">
+                <div class="settings-grid">
+                    <!-- KARTA: HERO -->
+                    <div class="settings-card">
+                        <div class="card-header">
+                            <h3>🦸 Nagłówek (Sekcja Hero)</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label class="form-label">Odznaka nad tytułem</label>
+                                <input type="text" name="hero_badge" class="form-control" value="{{ settings.get('hero_badge', '🔥 Najlepsze kebaby w Krakowie') }}">
+                            </div>
+                            <div class="form-row-2">
+                                <div class="form-group">
+                                    <label class="form-label">Tytuł część 1</label>
+                                    <input type="text" name="hero_title_1" class="form-control" value="{{ settings.get('hero_title_1', 'Najlepszy kebab') }}">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Tytuł wyróżniony (pomarańczowy)</label>
+                                    <input type="text" name="hero_title_2" class="form-control" value="{{ settings.get('hero_title_2', 'Krakowie') }}">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Podtytuł</label>
+                                <textarea name="hero_subtitle" class="form-control" rows="2">{{ settings.get('hero_subtitle', 'Przekonaj się sam! Soczyste mięso, autorskie sosy i porcje, które naprawdę sycą.') }}</textarea>
+                            </div>
+                            <div class="form-row-3">
+                                <div class="form-group">
+                                    <label class="form-label">Ocena</label>
+                                    <input type="text" name="hero_rating" class="form-control" value="{{ settings.get('hero_rating', '4.6') }}">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Liczba opinii</label>
+                                    <input type="text" name="hero_reviews" class="form-control" value="{{ settings.get('hero_reviews', '880+') }}">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Cena kebab od</label>
+                                    <input type="text" name="hero_min_price" class="form-control" value="{{ settings.get('hero_min_price', 'od 27 zł') }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KARTA: O NAS -->
+                    <div class="settings-card">
+                        <div class="card-header">
+                            <h3>📖 Sekcja "O nas"</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row-2">
+                                <div class="form-group">
+                                    <label class="form-label">Podtytuł sekcji</label>
+                                    <input type="text" name="about_subtitle" class="form-control" value="{{ settings.get('about_subtitle', 'O nas') }}">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Tytuł główny</label>
+                                    <input type="text" name="about_title" class="form-control" value="{{ settings.get('about_title', 'Dlaczego właśnie u nas?') }}">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Akapit 1 (dokładny tekst)</label>
+                                <textarea name="about_p1" class="form-control" rows="3">{{ settings.get('about_p1', 'Od 2022 roku robimy kebaby tak, jak lubimy je sami jeść. ze świeżego mięsa, chrupiących warzyw i własnych sosów.') }}</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Akapit 2 (dokładny tekst)</label>
+                                <textarea name="about_p2" class="form-control" rows="2">{{ settings.get('about_p2', 'Dwa lokale w Krakowie: Korpala 20 i Wrocławska 31. Na miejscu, na wynos lub z dostawą.') }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KARTA: CECHY W O NAS -->
+                    <div class="settings-card" style="grid-column: 1 / -1;">
+                        <div class="card-header">
+                            <h3>⭐ Cechy i atuty w sekcji "O nas"</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="features-edit-grid">
+                                <!-- Cecha 1 -->
+                                <div class="feature-edit-box">
+                                    <div class="form-group">
+                                        <label class="form-label">Ikona 1</label>
+                                        <input type="text" name="feature1_icon" class="form-control" value="{{ settings.get('feature1_icon', '🥗') }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Tytuł 1</label>
+                                        <input type="text" name="feature1_title" class="form-control" value="{{ settings.get('feature1_title', 'Świeże składniki') }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Opis 1</label>
+                                        <input type="text" name="feature1_desc" class="form-control" value="{{ settings.get('feature1_desc', 'Codziennie') }}">
+                                    </div>
+                                </div>
+                                <!-- Cecha 2 -->
+                                <div class="feature-edit-box">
+                                    <div class="form-group">
+                                        <label class="form-label">Ikona 2</label>
+                                        <input type="text" name="feature2_icon" class="form-control" value="{{ settings.get('feature2_icon', '🚀') }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Tytuł 2</label>
+                                        <input type="text" name="feature2_title" class="form-control" value="{{ settings.get('feature2_title', 'Szybka dostawa') }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Opis 2</label>
+                                        <input type="text" name="feature2_desc" class="form-control" value="{{ settings.get('feature2_desc', 'Uber · Glovo · Wolt') }}">
+                                    </div>
+                                </div>
+                                <!-- Cecha 3 -->
+                                <div class="feature-edit-box">
+                                    <div class="form-group">
+                                        <label class="form-label">Ikona 3</label>
+                                        <input type="text" name="feature3_icon" class="form-control" value="{{ settings.get('feature3_icon', '📞') }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Tytuł 3</label>
+                                        <input type="text" name="feature3_title" class="form-control" value="{{ settings.get('feature3_title', 'Zamów telefonicznie') }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Opis 3</label>
+                                        <input type="text" name="feature3_desc" class="form-control" value="{{ settings.get('feature3_desc', 'Od ręki') }}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="submit-bar">
+                    <button type="submit" class="btn-primary btn-large">💾 Zapisz wszystkie treści</button>
+                </div>
+            </form>
+
+            <!-- ZMIANA HASŁA -->
+            <div class="password-box" style="margin-top:30px;">
+                <div class="card-header">
+                    <h3>🔐 Bezpieczeństwo – Zmiana hasła administratora</h3>
+                </div>
+                <form method="POST" action="/admin/change-password" style="padding:20px;">
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label class="form-label">Aktualne hasło</label>
+                            <input type="password" name="current_password" class="form-control" placeholder="Wpisz obecne hasło" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Nowe hasło (min. 4 znaki)</label>
+                            <input type="password" name="new_password" class="form-control" placeholder="Wpisz nowe hasło" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-secondary">Zmień hasło</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- TAB 4: LOKALE ("Znajdź nas w Krakowie")        -->
+        <!-- ============================================== -->
+        <section class="tab-panel" id="tab-lokale">
+            <div class="panel-header-row">
+                <div>
+                    <h2>Lokale – "Znajdź nas w Krakowie"</h2>
+                    <p class="section-desc">Edytuj adresy, telefony, oceny i mapy. Możesz też dodać nowy lokal.</p>
+                </div>
+                <button class="btn-primary" onclick="openModal('add-location-modal')">+ Dodaj nowy lokal</button>
+            </div>
+
+            <div class="locations-admin-grid" style="margin-top:20px;">
+                {% for loc in locations %}
+                <div class="location-edit-card">
+                    <div class="loc-card-header">
+                        <div class="loc-card-title">
+                            <h3>📍 {{ loc.name }}</h3>
+                            <span class="loc-id-tag">ID: {{ loc.id }}</span>
+                        </div>
+                        <form method="POST" action="/admin/location/{{ loc.id }}/delete" style="display:inline;" onsubmit="return confirm('Czy na pewno chcesz usunąć lokal: {{ loc.name|e }}?')">
+                            <button type="submit" class="btn-icon btn-delete" title="Usuń lokal">🗑️ Usuń</button>
+                        </form>
+                    </div>
+                    <form method="POST" action="/admin/location/{{ loc.id }}/save" class="loc-card-body">
+                        <div class="form-group">
+                            <label class="form-label">Nazwa lokalu</label>
+                            <input type="text" name="name" class="form-control" value="{{ loc.name }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Adres pełny</label>
+                            <input type="text" name="address" class="form-control" value="{{ loc.address }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Numer telefonu</label>
+                            <input type="text" name="phone" class="form-control" value="{{ loc.phone }}" required>
+                        </div>
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label class="form-label">Ocena (np. 4.8)</label>
+                                <input type="number" step="0.1" min="1" max="5" name="rating" class="form-control" value="{{ loc.rating }}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Liczba opinii</label>
+                                <input type="number" name="reviews_count" class="form-control" value="{{ loc.reviews_count }}">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Odznaka (np. 'Najwyżej oceniany')</label>
+                            <input type="text" name="badge_text" class="form-control" value="{{ loc.badge_text or '' }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Link Google Maps (Przycisk "Trasa")</label>
+                            <input type="text" name="google_maps_url" class="form-control" value="{{ loc.google_maps_url or '' }}" placeholder="https://www.google.com/maps/search/?api=1&query=...">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Link do embedu mapy (iframe src)</label>
+                            <textarea name="map_embed_url" class="form-control" rows="2">{{ loc.map_embed_url or '' }}</textarea>
+                        </div>
+                        <button type="submit" class="btn-primary" style="width:100%;">💾 Zapisz dane lokalu</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- TAB 5: GODZINY OTWARCIA                       -->
+        <!-- ============================================== -->
+        <section class="tab-panel" id="tab-godziny">
+            <div class="panel-header-row">
+                <div>
+                    <h2>Godziny otwarcia lokali</h2>
+                    <p class="section-desc">Ustaw godziny dla każdego dnia tygodnia. System automatycznie wyświetla na żywo status: Otwarte / Zamknięte.</p>
+                </div>
+            </div>
+
+            <div class="hours-blocks-container" style="margin-top:20px;">
+                {% for loc in locations %}
+                <div class="hours-card-box">
+                    <div class="hours-card-title">
+                        <h3>📍 Harmonogram: {{ loc.name }}</h3>
+                        <span class="hours-badge">7 dni w tygodniu</span>
+                    </div>
+                    <form method="POST" action="/admin/hours/save" class="hours-form">
+                        <input type="hidden" name="location_id" value="{{ loc.id }}">
+                        <div class="hours-table-wrap">
+                            {% set loc_hours = hours_all | selectattr('location_id', 'equalto', loc.id) | list %}
+                            {% for h in loc_hours %}
+                            <div class="hours-edit-row">
+                                <span class="day-title">{{ h.day_name }}</span>
+                                <div class="time-inputs-wrap">
+                                    <label class="sub-label">Od:</label>
+                                    <input type="time" name="open_{{ h.day_of_week }}" class="time-input" value="{{ h.open_time }}" {% if h.is_closed %}disabled{% endif %}>
+                                    <label class="sub-label">Do:</label>
+                                    <input type="time" name="close_{{ h.day_of_week }}" class="time-input" value="{{ h.close_time }}" {% if h.is_closed %}disabled{% endif %}>
+                                </div>
+                                <label class="checkbox-container">
+                                    <input type="checkbox" name="closed_{{ h.day_of_week }}" value="1" {% if h.is_closed %}checked{% endif %} onchange="toggleHoursInputs(this)">
+                                    <span class="checkmark-text">Zamknięte</span>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <button type="submit" class="btn-primary" style="margin-top:15px;">💾 Zapisz godziny dla {{ loc.name }}</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- TAB 6: DZIENNIK ZDARZEŃ                        -->
+        <!-- ============================================== -->
+        <section class="tab-panel" id="tab-dziennik">
+            <div class="panel-header-row">
+                <div>
+                    <h2>Dziennik aktywności administratora</h2>
+                    <p class="section-desc">Historia ostatnich 25 operacji wykonanych w panelu zarządzania.</p>
+                </div>
+            </div>
+
+            <div class="table-container" style="margin-top:20px;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width:170px;">Data i czas</th>
+                            <th style="width:160px;">Typ operacji</th>
+                            <th>Szczegóły zdarzenia</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td class="text-muted" style="font-family:monospace;">{{ log.created_at }}</td>
+                            <td>
+                                <span class="log-badge log-{{ log.action_type }}">{{ log.action_type }}</span>
+                            </td>
+                            <td style="font-weight:500;">{{ log.description }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="empty-table">Brak wpisów w dzienniku.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- TAB 7: GALERIA                                 -->
+        <!-- ============================================== -->
+        <section class="tab-panel" id="tab-galeria">
+            <div class="panel-header-row">
+                <div>
+                    <h2>Galeria zdjęć</h2>
+                    <p class="section-desc">Zarządzaj zdjęciami wyświetlanymi w sekcji galeria na stronie głównej.</p>
+                </div>
+                <button class="btn-primary" onclick="openModal('add-gallery-modal')">+ Dodaj zdjęcie</button>
+            </div>
+
+            <div class="table-container" style="margin-top:20px;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width:100px;">Zdjęcie</th>
+                            <th>Nazwa pliku</th>
+                            <th>Kolejność</th>
+                            <th style="text-align:right;">Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for g in gallery %}
+                        <tr>
+                            <td>
+                                <img src="{{ url_for('static', filename='images/' + g.image_url) }}" alt="galeria" style="width:60px; height:60px; object-fit:cover; border-radius:8px;">
+                            </td>
+                            <td>{{ g.image_url }}</td>
+                            <td>{{ g.sort_order }}</td>
+                            <td style="text-align:right;">
+                                <form method="POST" action="/admin/gallery/{{ g.id }}/delete" style="display:inline;" onsubmit="return confirm('Usunąć to zdjęcie z galerii?')">
+                                    <button type="submit" class="btn-icon btn-delete" title="Usuń">🗑️</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="empty-table">Galeria jest pusta.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- TAB 8: ZAMÓWIENIA                              -->
+        <!-- ============================================== -->
+        <section class="tab-panel" id="tab-zamowienia">
+            <div class="panel-header-row">
+                <div>
+                    <h2>Sposoby zamówień (Dostawcy)</h2>
+                    <p class="section-desc">Zarządzaj kaflami zamówień online (np. Uber Eats, Glovo).</p>
+                </div>
+                <button class="btn-primary" onclick="openModal('add-ordermethod-modal')">+ Dodaj dostawcę</button>
+            </div>
+
+            <div class="table-container" style="margin-top:20px;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Dostawca</th>
+                            <th>Opis</th>
+                            <th>Link URL</th>
+                            <th>Kolejność</th>
+                            <th style="text-align:right;">Akcje</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for om in order_methods %}
+                        <tr>
+                            <td>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    {% if om.image_url %}
+                                    <img src="{{ url_for('static', filename='images/' + om.image_url) }}" alt="{{ om.name }}" style="width:30px; height:30px; object-fit:contain;">
+                                    {% endif %}
+                                    <strong>{{ om.name }}</strong>
+                                </div>
+                            </td>
+                            <td>{{ om.description }}</td>
+                            <td><a href="{{ om.url }}" target="_blank" style="color:var(--primary);text-decoration:underline;">Link ↗</a></td>
+                            <td>{{ om.sort_order }}</td>
+                            <td style="text-align:right;">
+                                <button type="button" class="btn-icon btn-edit" 
+                                        data-id="{{ om.id }}" 
+                                        data-name="{{ om.name|e }}" 
+                                        data-desc="{{ (om.description or '')|e }}" 
+                                        data-url="{{ (om.url or '')|e }}" 
+                                        data-img="{{ (om.image_url or '')|e }}" 
+                                        data-sort="{{ om.sort_order if om.sort_order is not none else 10 }}" 
+                                        onclick="openEditOrderMethodModalFromBtn(this)" 
+                                        title="Edytuj">✏️</button>
+                                <form method="POST" action="/admin/ordermethod/{{ om.id }}/delete" style="display:inline;" onsubmit="return confirm('Usunąć tego dostawcę?')">
+                                    <button type="submit" class="btn-icon btn-delete" title="Usuń">🗑️</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="empty-table">Brak dodanych sposobów zamówień.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<!-- ============================================== -->
+<!-- MODALE                                         -->
+<!-- ============================================== -->
+
+<!-- MODAL: DODAJ PRODUKT -->
+<div class="modal-backdrop" id="add-product-modal">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <h3>➕ Dodaj nowy produkt</h3>
+            <button type="button" class="modal-close" onclick="closeModal('add-product-modal')">&times;</button>
+        </div>
+        <form method="POST" action="/admin/product/add">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nazwa produktu *</label>
+                    <input type="text" name="name" class="form-control" placeholder="np. Kebab w cieście" required>
+                </div>
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label class="form-label">Kategoria *</label>
+                        <select name="category_id" class="form-control" required>
+                            {% for cat in categories %}
+                            <option value="{{ cat.id }}">{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Cena (zł) *</label>
+                        <input type="number" step="0.5" min="0" name="price" class="form-control" value="28.00" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Opis pozycji</label>
+                    <textarea name="description" class="form-control" rows="2" placeholder="Składniki, rodzaj pieczywa, sosy..."></textarea>
+                </div>
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label class="form-label">Plik zdjęcia</label>
+                        <select name="image_url" class="form-control">
+                            <option value="">-- Brak zdjęcia --</option>
+                            {% for img in available_images %}
+                            <option value="{{ img }}">{{ img }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Kolejność wyświetlania</label>
+                        <input type="number" name="sort_order" class="form-control" value="10">
+                    </div>
+                </div>
+                <div class="checkbox-row-grid">
+                    <label class="checkbox-container">
+                        <input type="checkbox" name="is_vegetarian" value="1">
+                        <span class="checkmark-text">🥗 Wegetariańskie</span>
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" name="is_spicy" value="1">
+                        <span class="checkmark-text">🌶️ Pikantne</span>
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" name="is_featured" value="1">
+                        <span class="checkmark-text">🔥 Polecane</span>
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" name="is_new" value="1">
+                        <span class="checkmark-text">✨ Nowość</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeModal('add-product-modal')">Anuluj</button>
+                <button type="submit" class="btn-primary">Dodaj do menu</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: EDYTUJ PRODUKT -->
+<div class="modal-backdrop" id="edit-product-modal">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <h3>✏️ Edycja produktu</h3>
+            <button type="button" class="modal-close" onclick="closeModal('edit-product-modal')">&times;</button>
+        </div>
+        <form method="POST" id="edit-product-form" action="">
+            <div class="modal-body">
+                <input type="hidden" id="edit-pid">
+                <div class="form-group">
+                    <label class="form-label">Nazwa produktu *</label>
+                    <input type="text" name="name" id="edit-name" class="form-control" required>
+                </div>
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label class="form-label">Kategoria *</label>
+                        <select name="category_id" id="edit-category" class="form-control" required>
+                            {% for cat in categories %}
+                            <option value="{{ cat.id }}">{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Cena (zł) *</label>
+                        <input type="number" step="0.5" min="0" name="price" id="edit-price" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Opis pozycji</label>
+                    <textarea name="description" id="edit-description" class="form-control" rows="2"></textarea>
+                </div>
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label class="form-label">Plik zdjęcia</label>
+                        <select name="image_url" id="edit-image" class="form-control">
+                            <option value="">-- Brak zdjęcia --</option>
+                            {% for img in available_images %}
+                            <option value="{{ img }}">{{ img }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Kolejność wyświetlania</label>
+                        <input type="number" name="sort_order" id="edit-sort" class="form-control">
+                    </div>
+                </div>
+                <div class="checkbox-row-grid">
+                    <label class="checkbox-container">
+                        <input type="checkbox" name="is_vegetarian" id="edit-vege" value="1">
+                        <span class="checkmark-text">🥗 Wegetariańskie</span>
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" name="is_spicy" id="edit-spicy" value="1">
+                        <span class="checkmark-text">🌶️ Pikantne</span>
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" name="is_featured" id="edit-featured" value="1">
+                        <span class="checkmark-text">🔥 Polecane</span>
+                    </label>
+                    <label class="checkbox-container">
+                        <input type="checkbox" name="is_new" id="edit-new" value="1">
+                        <span class="checkmark-text">✨ Nowość</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeModal('edit-product-modal')">Anuluj</button>
+                <button type="submit" class="btn-primary">Zapisz zmiany</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: DODAJ OGŁOSZENIE -->
+<div class="modal-backdrop" id="add-ann-modal">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <h3>📢 Nowe ogłoszenie</h3>
+            <button type="button" class="modal-close" onclick="closeModal('add-ann-modal')">&times;</button>
+        </div>
+        <form method="POST" action="/admin/announcement/save">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Odznaka / Tag (np. 🔥 OGŁOSZENIE, PROMOCJA)</label>
+                    <input type="text" name="badge_text" class="form-control" value="🔥 OGŁOSZENIE" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Treść ogłoszenia dla klientów *</label>
+                    <textarea name="content" class="form-control" rows="3" placeholder="Wpisz treść komunikatu na banerze..." required></textarea>
+                </div>
+                <label class="checkbox-container">
+                    <input type="checkbox" name="is_active" value="1" checked>
+                    <span class="checkmark-text">Aktywne natychmiast na stronie</span>
+                </label>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeModal('add-ann-modal')">Anuluj</button>
+                <button type="submit" class="btn-primary">Opublikuj ogłoszenie</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: EDYTUJ OGŁOSZENIE -->
+<div class="modal-backdrop" id="edit-ann-modal">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <h3>📢 Edytuj ogłoszenie</h3>
+            <button type="button" class="modal-close" onclick="closeModal('edit-ann-modal')">&times;</button>
+        </div>
+        <form method="POST" action="/admin/announcement/save">
+            <input type="hidden" name="id" id="edit-ann-id">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Odznaka / Tag</label>
+                    <input type="text" name="badge_text" id="edit-ann-badge" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Treść ogłoszenia *</label>
+                    <textarea name="content" id="edit-ann-content" class="form-control" rows="3" required></textarea>
+                </div>
+                <label class="checkbox-container">
+                    <input type="checkbox" name="is_active" id="edit-ann-active" value="1">
+                    <span class="checkmark-text">Aktywne na stronie głównej</span>
+                </label>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeModal('edit-ann-modal')">Anuluj</button>
+                <button type="submit" class="btn-primary">Zapisz ogłoszenie</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: DODAJ LOKAL -->
+<div class="modal-backdrop" id="add-location-modal">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <h3>📍 Dodaj nowy lokal</h3>
+            <button type="button" class="modal-close" onclick="closeModal('add-location-modal')">&times;</button>
+        </div>
+        <form method="POST" action="/admin/location/add">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nazwa lokalu (np. Wielicka 10) *</label>
+                    <input type="text" name="name" class="form-control" placeholder="np. Korpala 20" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Pełny adres *</label>
+                    <input type="text" name="address" class="form-control" placeholder="np. ul. Wielicka 10, Kraków" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Numer telefonu *</label>
+                    <input type="text" name="phone" class="form-control" placeholder="np. 123 456 789" required>
+                </div>
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label class="form-label">Średnia ocena</label>
+                        <input type="number" step="0.1" min="1" max="5" name="rating" class="form-control" value="4.8">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Liczba opinii</label>
+                        <input type="number" name="reviews_count" class="form-control" value="100">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Odznaka lokalu</label>
+                    <input type="text" name="badge_text" class="form-control" placeholder="np. Nowo otwarty">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeModal('add-location-modal')">Anuluj</button>
+                <button type="submit" class="btn-primary">Dodaj lokal</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: DODAJ ZDJĘCIE DO GALERII -->
+<div class="modal-backdrop" id="add-gallery-modal">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <h3>🖼️ Dodaj zdjęcie do galerii</h3>
+            <button type="button" class="modal-close" onclick="closeModal('add-gallery-modal')">&times;</button>
+        </div>
+        <form method="POST" action="/admin/gallery/add">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Wybierz zdjęcie</label>
+                    <select name="image_url" class="form-control" required>
+                        <option value="">-- Wybierz zdjęcie --</option>
+                        {% for img in available_images %}
+                        <option value="{{ img }}">{{ img }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kolejność (Sort order)</label>
+                    <input type="number" name="sort_order" class="form-control" value="10" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeModal('add-gallery-modal')">Anuluj</button>
+                <button type="submit" class="btn-primary">Dodaj zdjęcie</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: DODAJ DOSTAWCĘ (METODA ZAMÓWIENIA) -->
+<div class="modal-backdrop" id="add-ordermethod-modal">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <h3>🛵 Dodaj dostawcę</h3>
+            <button type="button" class="modal-close" onclick="closeModal('add-ordermethod-modal')">&times;</button>
+        </div>
+        <form method="POST" action="/admin/ordermethod/add">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nazwa (np. Uber Eats)</label>
+                    <input type="text" name="name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Opis podtytułu</label>
+                    <input type="text" name="description" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Link (URL) do restauracji w usłudze</label>
+                    <input type="url" name="url" class="form-control" required>
+                </div>
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label class="form-label">Logo platformy</label>
+                        <select name="image_url" class="form-control">
+                            <option value="">-- Brak --</option>
+                            {% for img in available_images %}
+                            <option value="{{ img }}">{{ img }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Kolejność</label>
+                        <input type="number" name="sort_order" class="form-control" value="10">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeModal('add-ordermethod-modal')">Anuluj</button>
+                <button type="submit" class="btn-primary">Dodaj dostawcę</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: EDYTUJ DOSTAWCĘ -->
+<div class="modal-backdrop" id="edit-ordermethod-modal">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <h3>✏️ Edytuj dostawcę</h3>
+            <button type="button" class="modal-close" onclick="closeModal('edit-ordermethod-modal')">&times;</button>
+        </div>
+        <form method="POST" action="" id="edit-ordermethod-form">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nazwa</label>
+                    <input type="text" name="name" id="edit-om-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Opis podtytułu</label>
+                    <input type="text" name="description" id="edit-om-desc" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Link (URL)</label>
+                    <input type="url" name="url" id="edit-om-url" class="form-control" required>
+                </div>
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label class="form-label">Logo</label>
+                        <select name="image_url" id="edit-om-img" class="form-control">
+                            <option value="">-- Brak --</option>
+                            {% for img in available_images %}
+                            <option value="{{ img }}">{{ img }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Kolejność</label>
+                        <input type="number" name="sort_order" id="edit-om-sort" class="form-control">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeModal('edit-ordermethod-modal')">Anuluj</button>
+                <button type="submit" class="btn-primary">Zapisz</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+</html>
